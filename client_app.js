@@ -135,15 +135,35 @@ function connection() {
 
 
   button_yes.addEventListener('click', () =>{
+    div.textContent = data.send_invite_name;
     ws.send(JSON.stringify({
       type: 'friend_accept',
-      currentUserName
+      currentUserName,
+      sender: data.sender
     }));
   });
+  button_no.addEventListener('click', () => {
+    div.remove();
+  });
+  
 }
     if(data.type === 'friend_accept'){
       if(data.accept === true){
-        addSystem(data.message);
+         const div = document.createElement('div');
+          div.className = 'system friend-request-msg';
+
+        const msgSpan = document.createElement('span');
+        msgSpan.textContent = data.message;
+
+        const actions = document.createElement('div');
+        actions.className = 'friend-request-actions';
+
+       
+  div.appendChild(msgSpan);
+  div.appendChild(actions);
+  friendList.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+        div.textContent = data.message;
       }
     }
 
@@ -275,15 +295,13 @@ registerSubmit.addEventListener('click', register_send);
 ///////////// добавление в друзья (отправка имени пользователя)
 function addFriend() {
   const nameAdd = friendInput.value.trim();
-  let send_invite_name = pendingLoginName;
-  //const nameSend = send_invite_name.value.trim();
+  const send_invite_name = currentUserName.trim();
   if(!nameAdd) {
     addSystem('Введите имя');
   }
   ws.send(JSON.stringify({
     type: 'name_friend',
     nameAdd,
-    //nameSend,
     send_invite_name
   }));
 }
@@ -323,4 +341,42 @@ function formatTime(value) {
   return date.toLocaleString('ru-RU');
 }
 
+function CreateDivToFriendList() {
+  const div = document.createElement('div');
+  div.className = 'system friend-request-msg';
+
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = data.message;
+
+  const actions = document.createElement('div');
+  actions.className = 'friend-request-actions';
+
+  const button_yes = document.createElement('button');
+  button_yes.className = 'button_yes';
+  button_yes.title = 'Принять';
+  button_yes.innerHTML = `
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="3"
+         stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>`;
+
+  const button_no = document.createElement('button');
+  button_no.className = 'button_no';
+  button_no.title = 'Отклонить';
+  button_no.innerHTML = `
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="3"
+         stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>`;
+
+  actions.appendChild(button_yes);
+  actions.appendChild(button_no);
+  div.appendChild(msgSpan);
+  div.appendChild(actions);
+  friendList.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
 connection();

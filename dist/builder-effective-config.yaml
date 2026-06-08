@@ -1,0 +1,12 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.example.myapp
+win:
+  target: nsis
+  icon: icon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+files: []
+electronVersion: 42.2.0
