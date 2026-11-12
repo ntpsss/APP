@@ -12,10 +12,7 @@
 
   <!-- ЛЕВАЯ ЧАСТЬ: бренд + кнопка друзей -->
   <div class="topbar-left">
-    <div class="brand">
-      <h1 class="title">McDonalds Chat</h1>
-      <div class="subtitle">Простой локальный чат</div>
-    </div>
+    
 
     <div class="add-friend-wrap">
       <button id="addFriendBtn" type="button" title="Список друзей">
@@ -46,6 +43,17 @@
   </div>
 
   <!-- ПРАВАЯ ЧАСТЬ: без изменений -->
+  <div class="user-panel" id="userPanel" style="display:none;">
+  <div class="user-avatar" id="userAvatar">
+    U
+  </div>
+
+  <div class="user-data">
+    <div class="user-name" >
+      <p id="userName"></p>
+    </div>
+  </div>
+</div>
  <div class="login_css">
 
   <div class="loginbtn" style="display:flex; gap:8px;">
@@ -69,19 +77,95 @@
   </div>
 </div>
 
+
 </header>
-    <main id="chat" class="chat-area"></main>
+<div class="content">
+
+  <aside class="groups-panel">
+
+    <div class="groups-header">
+      Группы
+    </div>
+
+    <div id="groupList">
+
+      <!-- сюда будут добавляться группы -->
+
+    </div>
+    <p id="create_Group">Создать группу</p>
+  </aside>
+
+  <div class="chat-container">
+
+    <main id="chat" class="chat-area">
+
+    </main>
 
     <div class="composer">
+
       <input
-        id="author"
-        placeholder="Ваше имя"
-        title="Войти или зарегистрироваться"
-      />
-      <input id="text" placeholder="Введите сообщение..." />
-      <button id="sendBtn" type="button">Отправить</button>
+        id="text"
+        placeholder="Введите сообщение..."
+      >
+      <button id="sendBtn" type="button">
+      Отправить
+      </button>
     </div>
+
   </div>
+  
+</div>
+  <div id="createGroupModal">
+
+    <div class="group-modal">
+
+        <div class="group-modal-header">
+
+            <h2>Создать группу</h2>
+
+            <button id="closeGroupModal">
+
+                ✕
+
+            </button>
+
+        </div>
+
+        <div class="group-modal-body">
+
+            <input
+                id="groupName"
+                type="text"
+                placeholder="Название группы"
+                maxlength="30"
+            >
+            <div id="submitinviteGroup" class="submit_inviteGroup">
+            <p>Выбранные пользователи</p>
+            </div>
+            <p>Выберите друзей</p>
+            
+            <div class="invitefriendlist" id="invitegrouplist">
+              
+            </div>
+
+        </div>
+
+        <div class="group-modal-footer">
+
+            <button id="createGroupBtn">
+
+                Создать
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+</div>
+
+    
 
   <script src="client_app.js"></script>
 </body>

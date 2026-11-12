@@ -1,0 +1,43 @@
+if(data.type === 'friend_accept'){
+      if(data.accept === true){
+        const div = document.createElement('div');
+        div.className = 'system friend-request-msg';
+
+        const msgSpan = document.createElement('span');
+        msgSpan.textContent = data.message;
+
+        const actions = document.createElement('div');
+        actions.className = 'friend-request-actions';
+
+       
+        div.appendChild(msgSpan);
+        div.appendChild(actions);
+        friendList.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+        div.textContent = data.message;
+      }
+    }
+
+
+
+
+    if(data.type === 'friend_accept'){
+      
+      if(data.accept === true){
+        data.friends.forEach(friend => {
+          const div = document.createElement('div');
+          div.textContent = friend.friend_name;
+          friendList.appendChild(div);
+          div.addEventListener('click', () => {
+            currentFriend = friend.friend_name;
+
+            ws.send(JSON.stringify({
+              type: 'friend_message_history',
+              sender: currentUserName,
+              receiver: currentFriend
+            }));
+          });
+        });
+      }
+      
+    }

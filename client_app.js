@@ -1,3 +1,12 @@
+//СООБЩЕНИЯ
+  //разрешение на сообщения
+if(Notification.permission !== 'granted'){
+
+    Notification.requestPermission();
+
+}
+    //звук сообщения
+const notifySound = new Audio('Vo_undying_undying_items_10.mp3.mp3');
 const { json } = require("express");
 // для сообщений 
 const chat = document.getElementById('chat');
@@ -19,6 +28,9 @@ const regLoginInput = document.getElementById('regLogin');
 const regPasswordInput = document.getElementById('regPassword');
 const regPasswordConfirm = document.getElementById('regPasswordConfirm');
 const registerSubmit = document.getElementById('registerSubmit');
+        //Для регистрации и логина(появление конта с никнеймом)
+const userPanel = document.getElementById('userPanel');
+const userName = document.getElementById('userName');
 // добавление в др
 const frienBtn = document.getElementById('addFriendBtn');
 const addFriendMenu = document.getElementById('addFriendMenu');
@@ -30,7 +42,24 @@ let ws = null;
 let reconnectTimer = null;
 let pendingLoginName = '';
 let currentUserName = '';
-
+let currentFriend = '';
+//групповые чаты
+const create_group = document.getElementById('create_Group');
+const winInviteGroup = document.getElementById('createGroupModal');
+const closeGroupModal = document.getElementById('closeGroupModal');
+const createGroupBtn = document.getElementById('createGroupBtn');
+const invitegrouplist = document.getElementById('invitegrouplist');
+const submitinviteGroup = document.getElementById('submitinviteGroup');
+const groupName = document.getElementById('groupName');
+let currentgroupFriend = '';
+let groupfriends = [];
+create_group.addEventListener('click', () => {
+  winInviteGroup.style.display = 'flex';
+});
+closeGroupModal.addEventListener('click', () => {
+  winInviteGroup.style.display = 'none';
+});
+    //кликабельные имена(открывают чат с другом)
 frienBtn.addEventListener('click', () => {
   addFriendMenu.classList.toggle('show');
 });
@@ -95,116 +124,131 @@ function connection() {
         return;
       }
     }
-  if(data.type === 'friend_request'){
-  const div = document.createElement('div');
-  div.className = 'system friend-request-msg';
 
-  const msgSpan = document.createElement('span');
-  msgSpan.textContent = data.message;
+    if(data.type === 'friend_request'){
+      const {div, button_yes, button_no} = createFriendRequestElement(data.message);
 
-  const actions = document.createElement('div');
-  actions.className = 'friend-request-actions';
-
-  const button_yes = document.createElement('button');
-  button_yes.className = 'button_yes';
-  button_yes.title = 'Принять';
-  button_yes.innerHTML = `
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="3"
-         stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="20 6 9 17 4 12"/>
-    </svg>`;
-
-  const button_no = document.createElement('button');
-  button_no.className = 'button_no';
-  button_no.title = 'Отклонить';
-  button_no.innerHTML = `
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="3"
-         stroke-linecap="round" stroke-linejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18"/>
-      <line x1="6" y1="6" x2="18" y2="18"/>
-    </svg>`;
-
-  actions.appendChild(button_yes);
-  actions.appendChild(button_no);
-  div.appendChild(msgSpan);
-  div.appendChild(actions);
-  friendList.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-
-
-  button_yes.addEventListener('click', () =>{
-    div.textContent = data.send_invite_name;
-    ws.send(JSON.stringify({
-      type: 'friend_accept',
-      currentUserName,
-      sender: data.sender
-    }));
-  });
-  button_no.addEventListener('click', () => {
-    div.remove();
-  });
-  
-}
-    if(data.type === 'friend_accept'){
-      if(data.accept === true){
-         const div = document.createElement('div');
-          div.className = 'system friend-request-msg';
-
-        const msgSpan = document.createElement('span');
-        msgSpan.textContent = data.message;
-
-        const actions = document.createElement('div');
-        actions.className = 'friend-request-actions';
-
-       
-  div.appendChild(msgSpan);
-  div.appendChild(actions);
-  friendList.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-        div.textContent = data.message;
-      }
+      button_yes.addEventListener('click', () =>{
+        div.textContent = data.send_invite_name;
+        ws.send(JSON.stringify({
+        type: 'friend_accept',
+        currentUserName,
+        sender: data.sender
+        }));
+      });
+      button_no.addEventListener('click', () => {
+        div.remove();
+      });
     }
+    
+    if(data.type === 'friend_list'){
+      friendList.innerHTML = '';
+      data.friends.forEach(friend => {
+      const div = document.createElement('div');
+      const divgroup = document.createElement('div');
+      div.textContent = friend.friend_name;
+      divgroup.textContent = friend.friend_name;
+      friendList.appendChild(div);
+      invitegrouplist.appendChild(divgroup);
 
+      div.addEventListener('click', () => {
+        currentFriend = friend.friend_name;
+        ws.send(JSON.stringify({
+          type: 'friend_message_history',
+          sender: currentUserName,
+          receiver: currentFriend
+        }));
+      });
+
+      divgroup.addEventListener('click', () => {
+        currentgroupFriend = friend.friend_name;
+        
+        groupfriends.push(currentgroupFriend);
+        addSystem(groupfriends)
+        const clonCurrentGroupFriend = divgroup.cloneNode(true);
+        submitinviteGroup.style.display = 'block';
+        submitinviteGroup.appendChild(clonCurrentGroupFriend);
+      });
+
+      createGroupBtn.addEventListener('click', () => {
+        const name = groupName.value.trim();
+        ws.send(JSON.stringify({
+          type: 'group_membersAndname',
+          name: name,
+          groopUsers: groupfriends
+        }));
+      });
+      closeGroupModal.addEventListener('click', () =>{
+        submitinviteGroup.innerHTML = '';
+      });
+
+      });
+    }
+/////////регистрация
     if (data.type === 'register_result') {
       addSystem(data.message);
-      
+      loginBtn.remove();
+      registrBtn.remove();
+      userPanel.style.display = 'flex';
       currentUserName = pendingLoginName;
-      authorInput.value = currentUserName;
-      authorInput.readOnly = true;
+      userName.textContent = currentUserName;
       registerMenu.classList.remove('show');
       regLoginInput.value = '';
       regPasswordInput.value = '';
+      loginorregistername(currentUserName);
       return;
     }
+/////////////логин
+
     if (data.type === 'login_result') {
       addSystem(data.message);
-
+      
       if (data.success === true) {
+        loginBtn.remove();
+        registrBtn.remove();
+        userPanel.style.display = 'flex';
         currentUserName = pendingLoginName;
-        authorInput.value = currentUserName;
-        authorInput.readOnly = true;
-        registerMenu.classList.remove('show');
+        userName.textContent = currentUserName;
+        loginMenu.classList.remove('show');
         loginInput.value = '';
         passwordInput.value = '';
+        loginorregistername(currentUserName);
       }
       return;
     }
-    if (data.type === 'history') {
+    
+
+    if (data.type === 'friend_message_history') {
       chat.innerHTML = '';
-      (data.message || []).forEach(renderMessage);
+      data.messages.forEach(msg => {
+        renderMessage(msg);
+      });
       return;
     }
 
-    if (data.type === 'message') {
-      renderMessage(data.message);
+    if(data.type === 'friend_message'){
+      renderMessage(data);
+
+       if(document.hidden){
+        notifySound.currentTime = 0;
+        notifySound.play();
+        new Notification(
+          `Новое сообщение от ${data.sender}`,
+          {
+            body: data.text,
+            silent: true
+          }
+            );
+
+        }
+
       return;
     }
 
     if (data.type === 'error') {
       addSystem('Ошибка: ' + data.message);
     }
+
   });
 
   ws.addEventListener('close', () => {
@@ -221,9 +265,11 @@ function connection() {
 ///////////// отправка сообщения
 function sendMessage() {
   const text = textInput.value.trim();
-  const author = authorInput.value.trim();
 
-  if (!author || !text) return;
+  if (!currentFriend || !text) {
+  addSystem('Выберите друга');
+  return;
+  }
 
   if (!ws || ws.readyState !== WebSocket.OPEN) {
     addSystem('Нет соединения с сервером');
@@ -231,8 +277,9 @@ function sendMessage() {
   }
 
   ws.send(JSON.stringify({
-    type: 'message',
-    author,
+    type: 'friend_message',
+    sender: currentUserName,
+    receiver: currentFriend,
     text
   }));
 
@@ -311,7 +358,7 @@ function renderMessage(msg) {
   const div = document.createElement('div');
   div.className = 'msg';
   div.innerHTML = `
-    <div class="msg-author">${escapeHtml(msg.author)}</div>
+    <div class="msg-author">${escapeHtml(msg.sender)}</div>
     <div class="msg-text">${escapeHtml(msg.text)}</div>
     <div class="meta">${formatTime(msg.created_at)}</div>
   `;
@@ -340,13 +387,18 @@ function formatTime(value) {
   const date = new Date(value);
   return date.toLocaleString('ru-RU');
 }
-
-function CreateDivToFriendList() {
+function loginorregistername(name) {
+  ws.send(JSON.stringify({
+    type: 'friends',
+    name
+  }));
+}
+function createFriendRequestElement(text) {
   const div = document.createElement('div');
   div.className = 'system friend-request-msg';
 
   const msgSpan = document.createElement('span');
-  msgSpan.textContent = data.message;
+  msgSpan.textContent = text;
 
   const actions = document.createElement('div');
   actions.className = 'friend-request-actions';
@@ -356,8 +408,8 @@ function CreateDivToFriendList() {
   button_yes.title = 'Принять';
   button_yes.innerHTML = `
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="3"
-         stroke-linecap="round" stroke-linejoin="round">
+      stroke="currentColor" stroke-width="3"
+      stroke-linecap="round" stroke-linejoin="round">
       <polyline points="20 6 9 17 4 12"/>
     </svg>`;
 
@@ -366,17 +418,25 @@ function CreateDivToFriendList() {
   button_no.title = 'Отклонить';
   button_no.innerHTML = `
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="3"
-         stroke-linecap="round" stroke-linejoin="round">
+      stroke="currentColor" stroke-width="3"
+      stroke-linecap="round" stroke-linejoin="round">
       <line x1="18" y1="6" x2="6" y2="18"/>
       <line x1="6" y1="6" x2="18" y2="18"/>
     </svg>`;
 
   actions.appendChild(button_yes);
   actions.appendChild(button_no);
+
   div.appendChild(msgSpan);
   div.appendChild(actions);
+
   friendList.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+
+  return {
+    div,
+    button_yes,
+    button_no
+  };
 }
 connection();
